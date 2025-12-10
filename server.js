@@ -65,14 +65,19 @@ app.post("/api/chat", async (req, res) => {
             },
             body: JSON.stringify({
                 model: "gpt-4o-audio-preview",
-                voice: "alloy",
-                input: botReply,
-                format: "mp3"
+                modalities: ["text", "audio"],
+                audio: {
+                    voice: "alloy",
+                    format: "mp3"
+                },
+                messages: [
+                { role: "user", content: botReply }
+            ]
             }),
         });
 
-        const arrayBuffer = await ttsRes.arrayBuffer();
-        const audioBase64 = Buffer.from(arrayBuffer).toString("base64");
+        const audioBase64 = ttsRes.choices[0].message.audio.data;
+
 
         // ====== 3) Send back to frontend ======
         res.json({
