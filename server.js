@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
+import OpenAI from "openai";
 // import dotenv from "dotenv";
-
+const openai = new OpenAI();
 // dotenv.config();
 
 const app = express();
@@ -55,32 +56,26 @@ app.post("/api/chat", async (req, res) => {
         const chatData = await chatRes.json();
         const botReply = chatData.choices[0].message.content;
 
-        try {
+        // try {
             // ====== 2) Convert TEXT → VOICE (mp3 base64) ======
-            const ttsRes = await fetch("https://api.openai.com/v1/audio/speech", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${OPENAI_API_KEY}`,
-                },
-                body: JSON.stringify({
-                    model: "gpt-4o-audio-preview",
-                    modalities: ["text", "audio"],
-                    audio: {
-                        voice: "alloy",
-                        format: "mp3"
-                    },
-                    messages: [
-                        { role: "user", content: botReply }
-                    ]
-                }),
-            });
+        const response = await openai.chat.completions.create({
+        model: "gpt-4o-audio-preview",
+        modalities: ["text", "audio"],
+        audio: { voice: "alloy", format: "wav" },
+        messages: [
+            {
+            role: "user",
+            content: botReply
+            }
+        ],
+        store: true,
+        });
 
-            const audioBase64 = ttsRes.choices[0].message.audio.data;
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ reply: "Server error1", audio: "7777" });
-        }
+        const audioBase64 = response.choices[0].message.audio.data;
+        // } catch (error) {
+        //     console.error(error);
+        //     res.status(500).json({ reply: "Server error1", audio: "7777" });
+        // }
 
         // ====== 3) Send back to frontend ======
         res.json({
