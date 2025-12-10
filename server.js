@@ -40,23 +40,23 @@ app.post("/api/chat", async (req, res) => {
         const userMessage = req.body.message;
 
         // ====== 1) Get ChatGPT text ======
-        const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [
-                    { role: "system", content: SYSTEM_PROMPT },
-                    { role: "user", content: userMessage }
-                ]
-            }),
-        });
+        // const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        //     method: "POST",
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //         Authorization: `Bearer ${OPENAI_API_KEY}`,
+        //     },
+        //     body: JSON.stringify({
+        //         model: "gpt-4o-mini",
+        //         messages: [
+        //             { role: "system", content: SYSTEM_PROMPT },
+        //             { role: "user", content: userMessage }
+        //         ]
+        //     }),
+        // });
 
-        const chatData = await chatRes.json();
-        const botReply = chatData.choices[0].message.content;
+        // const chatData = await chatRes.json();
+        // const botReply = chatData.choices[0].message.content;
         const response = await client.chat.completions.create({
             model: "gpt-4o-audio-preview",
             modalities: ["text", "audio"],
@@ -65,8 +65,8 @@ app.post("/api/chat", async (req, res) => {
                 format: "mp3"
             },
             messages: [
-                // { role: "system", content: SYSTEM_PROMPT },
-                { role: "user", content: botReply }
+                { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: userMessage }
             ]
         });
 
@@ -81,10 +81,10 @@ app.post("/api/chat", async (req, res) => {
         });
 
         // ====== 3) Send back to frontend ======
-        res.json({
-            reply: botReply,
-            audio: audioBase64
-        });
+        // res.json({
+        //     reply: botReply,
+        //     audio: audioBase64
+        // });
 
     } catch (error) {
         console.error(error);
