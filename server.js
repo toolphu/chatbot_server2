@@ -3,7 +3,9 @@ import cors from "cors";
 import fetch from "node-fetch";
 import OpenAI from "openai";
 // import dotenv from "dotenv";
-const openai = new OpenAI();
+const client = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 // dotenv.config();
 
 const app = express();
@@ -55,27 +57,28 @@ app.post("/api/chat", async (req, res) => {
 
         const chatData = await chatRes.json();
         const botReply = chatData.choices[0].message.content;
-
-        // try {
-            // ====== 2) Convert TEXT → VOICE (mp3 base64) ======
-        const response = await openai.chat.completions.create({
-        model: "gpt-4o-audio-preview",
-        modalities: ["text", "audio"],
-        audio: { voice: "alloy", format: "wav" },
-        messages: [
-            {
-            role: "user",
-            content: botReply
-            }
-        ],
-        store: true,
+        const response = await client.chat.completions.create({
+            model: "gpt-4o-audio-preview",
+            modalities: ["text", "audio"],
+            audio: {
+                voice: "alloy",
+                format: "mp3"
+            },
+            messages: [
+                // { role: "system", content: SYSTEM_PROMPT },
+                { role: "user", content: botReply }
+            ]
         });
 
-        const audioBase64 = response.choices[0].message.audio.data;
-        // } catch (error) {
-        //     console.error(error);
-        //     res.status(500).json({ reply: "Server error1", audio: "7777" });
-        // }
+        const choice = response.choices[0];
+
+        const text = choice.message.content;
+        const audioBase64 = choice.message.audio?.data || null;
+
+        res.json({
+            reply: text,
+            audio: audioBase64
+        });
 
         // ====== 3) Send back to frontend ======
         res.json({
