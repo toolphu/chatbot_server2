@@ -62,22 +62,25 @@ app.post("/api/chat", async (req, res) => {
             modalities: ["text", "audio"],
             audio: {
                 voice: "alloy",
-                format: "mp3"
+                format: "wav"
             },
             messages: [
-                { role: "system", content: SYSTEM_PROMPT },
-                { role: "user", content: userMessage }
-            ]
+                {
+                role: "user",
+                content: "Is a golden retriever a good family dog?"
+                }
+            ],
+            store: true,
         });
 
         const choice = response.choices[0];
 
-        const text = choice.message.content;
-        const audioBase64 = choice.message.audio?.data || null;
+        // const text = choice.message.content;
+        // const audioBase64 = choice.message.audio?.data || null;
 
         res.json({
-            reply: text,
-            audio: audioBase64
+            reply: "text",
+            audio: choice
         });
 
         // ====== 3) Send back to frontend ======
