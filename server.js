@@ -64,7 +64,7 @@ app.post("/api/chat", async (req, res) => {
                 Authorization: `Bearer ${OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
-                model: "gpt-4o-mini-tts",
+                model: "gpt-4o-audio-preview",
                 voice: "alloy",
                 input: botReply,
                 format: "mp3"
