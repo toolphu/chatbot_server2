@@ -1,16 +1,10 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
-import OpenAI from "openai";
-// import dotenv from "dotenv";
-const client = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
-// dotenv.config();
 
 const app = express();
 
-app.use(express.json({ limit: "20mb" }));
+app.use(express.json());
 app.use(cors());
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -23,83 +17,48 @@ You ALWAYS reply in two languages:
 English first (teacher tone)  
 Then Vietnamese translation.
 
-Format:
+Example format:
 EN: ...
 VI: ...
 
-Teach English related to restaurant topics.
-Correct grammar softly.
-Encourage the user to practice.
+💬 NORMAL MODE:
+- Teach English about restaurant topics.
+- Correct grammar gently.
+- Explain vocabulary softly and clearly.
+- Encourage the user to practice.
+
 `;
 
-//
-// ➤ MAIN CHAT + AUTO VOICE
-//
 app.post("/api/chat", async (req, res) => {
     try {
         const userMessage = req.body.message;
 
-        // ====== 1) Get ChatGPT text ======
-        // const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
-        //     method: "POST",
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //         Authorization: `Bearer ${OPENAI_API_KEY}`,
-        //     },
-        //     body: JSON.stringify({
-        //         model: "gpt-4o-mini",
-        //         messages: [
-        //             { role: "system", content: SYSTEM_PROMPT },
-        //             { role: "user", content: userMessage }
-        //         ]
-        //     }),
-        // });
-
-        // const chatData = await chatRes.json();
-        // const botReply = chatData.choices[0].message.content;
-        const response = await client.chat.completions.create({
-            model: "gpt-4o-audio-preview",
-            modalities: ["text", "audio"],
-            audio: {
-                voice: "alloy",
-                format: "wav"
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${OPENAI_API_KEY}`,
             },
-            messages: [
-                {
-                role: "user",
-                content: "Is a golden retriever a good family dog?"
-                }
-            ],
-            store: true,
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: userMessage }
+                ]
+            }),
         });
 
-        const choice = response.choices[0];
-
-        // const text = choice.message.content;
-        // const audioBase64 = choice.message.audio?.data || null;
-
-        res.json({
-            reply: "text",
-            audio: choice
-        });
-
-        // ====== 3) Send back to frontend ======
-        // res.json({
-        //     reply: botReply,
-        //     audio: audioBase64
-        // });
+        const data = await response.json();
+        res.json({ reply: data.choices[0].message.content });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ reply: "Server error", audio: null });
+        res.status(500).json({ error: "Server lỗi" });
     }
 });
 
-
 app.get("/", (req, res) => {
-    res.send("Chatbot API with voice is running!");
+    res.send("Chatbot API đang chạy!");
 });
 
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(3000, () => console.log("Server running on port 3000"));
